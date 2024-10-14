@@ -1,0 +1,8 @@
+aiofiles==24.1.0
+aiogram==3.13.1
+asyncpg==0.29.0
+beautifulsoup4==4.12.3
+environs==11.0.0
+lxml==5.3.0
+pillow==10.4.0
+requests==2.32.3

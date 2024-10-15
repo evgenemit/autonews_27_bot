@@ -15,3 +15,4 @@ async def start(msg: types.Message):
 async def main_menu(msg: types.Message, state: FSMContext):
     """Главное меню"""
     await msg.answer('Меню', reply_markup=reply.main_keyboard())
+    await state.clear()

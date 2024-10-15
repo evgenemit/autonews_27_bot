@@ -35,7 +35,7 @@ async def get_news_url(msg: types.Message, bot: Bot,  state: FSMContext):
         )
         await state.set_state(NewsCreationStates.GET_NEWS_TITLE)
     if msg.photo:
-        file_name = f'data/{str(time.time()).replace('.', '')}.jpg'
+        file_name = f"data/{str(time.time()).replace('.', '')}.jpg"
         await bot.download(file=msg.photo[-1].file_id, destination=file_name)
 
 
@@ -105,7 +105,7 @@ async def get_circle(msg: types.Message, state: FSMContext):
 async def get_images(msg: types.Message, bot: Bot, state: FSMContext):
     """Сохраняет изображения"""
     if msg.photo:
-        file_name = f'data/{str(time.time()).replace('.', '')}.jpg'
+        file_name = f"data/{str(time.time()).replace('.', '')}.jpg"
         await bot.download(file=msg.photo[-1].file_id, destination=file_name)
     await msg.answer(
         'Загружено',

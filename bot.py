@@ -7,6 +7,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from core.middlewares.db_middleware import DbSession
+from core.middlewares.admin_middleware import AdminMiddleware
 from core.router import core_router
 
 env = Env()
@@ -22,6 +23,7 @@ dp = Dispatcher()
 async def main():
     pool_connect = await asyncpg.create_pool(env.str('DB_URI'))
     dp.update.middleware(DbSession(pool_connect))
+    dp.update.middleware(AdminMiddleware())
     dp.include_router(core_router)
 
     try:

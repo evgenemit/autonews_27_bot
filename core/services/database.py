@@ -14,3 +14,9 @@ class Database:
 
     async def fetchrow(self, text: str) -> list:
         return await self.connect.fetchrow(text)
+
+    async def is_admin(self, user_id: int) -> bool:
+        data = await self.fetchrow(
+            f"SELECT * FROM admins WHERE user_id = '{user_id}';"
+        )
+        return data is not None

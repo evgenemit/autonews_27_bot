@@ -384,3 +384,32 @@ class AutoNews:
         if not res['status']:
             return res
         return {'status': True}
+
+
+    async def circle(self, tree: list, images_count: int):
+        """Загружает изображения по цепочке"""
+        await add_logs('login')
+        res = await self.login()
+        if not res['status']:
+            return res
+
+        await add_logs('open tree')
+        res = await self.open_tree(tree)
+        if not res['status']:
+            return res
+        guid = res['guid']
+
+        await add_logs(f'create images ({images_count})')
+        res = await self.add_object(guid, '304', images_count)
+        if not res['status']:
+            return res
+        images_objs_id = res['objs_id']
+        await add_logs(f'созданы картинки {images_objs_id}')
+
+        await add_logs('prepare images')
+        await self.prepare_imges()
+
+        await add_logs('load images')
+        for obj_id in images_objs_id:
+            await self.add_img(obj_id)
+        return {'status': True}

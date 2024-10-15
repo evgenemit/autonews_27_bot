@@ -1,13 +1,11 @@
 import emoji
-import aiohttp
+import time
 import aiofiles
 import aiofiles.os
-from environs import Env
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
 
-from core.states.news_states import NewsCreationStates
-from core.services.database import Database
+from core.states.news_states import NewsCreationStates, CircleStates
 from core.services.autonews import AutoNews
 from core.services.logs import add_logs
 from core.keyboards import reply
@@ -29,24 +27,16 @@ async def create_news(msg: types.Message, state: FSMContext):
 
 async def get_news_url(msg: types.Message, bot: Bot,  state: FSMContext):
     """Загружает изображения и текст из telegram поста"""
-    env = Env()
-    env.read_env('.env')
-    token = env.str('TOKEN')
     if msg.caption:
         await state.update_data({'caption': msg.caption})
-        await msg.answer('Заголовок: ')
+        await msg.answer(
+            'Заголовок: ',
+            reply_markup=reply.cancle_keyboard('Заголовок новости')
+        )
         await state.set_state(NewsCreationStates.GET_NEWS_TITLE)
     if msg.photo:
-        photo = msg.photo[-1]
-        file_path = (await bot.get_file(photo.file_id)).file_path
-        file_url = f'https://api.telegram.org/file/bot{token}/{file_path}'
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(file_url) as response:
-                files_count = len(await aiofiles.os.listdir('data'))
-                file_name = f'data/{files_count + 1}.jpg'
-                async with aiofiles.open(file_name, mode='wb') as f:
-                    await f.write(await response.read())
+        file_name = f'data/{str(time.time()).replace('.', '')}.jpg'
+        await bot.download(file=msg.photo[-1].file_id, destination=file_name)
 
 
 async def get_news_title(msg: types.Message, state: FSMContext):
@@ -86,4 +76,68 @@ async def get_news_date(msg: types.Message, state: FSMContext):
             f'{emoji.emojize(":red_circle:")} <b>{res["message"]}</b>'
         )
     await msg.answer('Меню', reply_markup=reply.main_keyboard())
+    await state.clear()
+
+
+async def circle_start(msg: types.Message, state: FSMContext):
+    """Запрашивает цепочку классификаторов"""
+    if not await aiofiles.os.path.exists('data/'):
+        await aiofiles.os.mkdir('data')
+    for file_path in await aiofiles.os.listdir('data'):
+        await aiofiles.os.remove(f'data/{file_path}')
+    await msg.answer(
+        'Цепочка классификаторв (разедлитель ", ")',
+        reply_markup=reply.cancle_keyboard('Актуально, Сервисы')
+    )
+    await state.set_state(CircleStates.GET_CIRCLE)
+
+
+async def get_circle(msg: types.Message, state: FSMContext):
+    """Сохраняет цепочку классификаторов и запрашивает изображения"""
+    await state.update_data({'circle': msg.text.split(', ')})
+    await msg.answer(
+        'Изображения',
+        reply_markup=reply.cancle_keyboard('Отправь картинки')
+    )
+    await state.set_state(CircleStates.GET_IMAGES)
+
+
+async def get_images(msg: types.Message, bot: Bot, state: FSMContext):
+    """Сохраняет изображения"""
+    if msg.photo:
+        file_name = f'data/{str(time.time()).replace('.', '')}.jpg'
+        await bot.download(file=msg.photo[-1].file_id, destination=file_name)
+    await msg.answer(
+        'Загружено',
+        reply_markup=reply.circle_keyboard()
+    )
+    await state.set_state(CircleStates.LOAD_IMAGES)
+
+
+async def circle_load_images(msg: types.Message, state: FSMContext):
+    """Загружает изображения в классификатор по цепочке"""
+    data = await state.get_data()
+    images_count = len(await aiofiles.os.listdir('data'))
+    async with AutoNews() as an:
+        try:
+            res = await an.circle(
+                data.get('circle'),
+                images_count
+            )
+        except Exception as e:
+            res = {'status': False, 'message': f'Ошибка. {e}'}
+            await add_logs(f'Error {e}')
+            raise e
+    if res['status']:
+        await msg.answer(
+            f'{emoji.emojize(":green_circle:")} <b>Успешно загружено</b>'
+        )
+    else:
+        await msg.answer(
+            f'{emoji.emojize(":red_circle:")} <b>{res["message"]}</b>'
+        )
+    await msg.answer(
+        'Меню',
+        reply_markup=reply.main_keyboard()
+    )
     await state.clear()

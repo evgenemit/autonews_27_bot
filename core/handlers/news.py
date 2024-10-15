@@ -1,3 +1,4 @@
+import emoji
 import aiohttp
 import aiofiles
 import aiofiles.os
@@ -77,8 +78,12 @@ async def get_news_date(msg: types.Message, state: FSMContext):
             await add_logs(f'Error {e}')
             raise e
     if res['status']:
-        await msg.answer('Успешно создано')
+        await msg.answer(
+            f'{emoji.emojize(":green_circle:")} <b>Успешно создано</b>'
+        )
     else:
-        await msg.answer(f'Ошибка создания: {res["message"]}')
+        await msg.answer(
+            f'{emoji.emojize(":red_circle:")} <b>{res["message"]}</b>'
+        )
     await msg.answer('Меню', reply_markup=reply.main_keyboard())
     await state.clear()

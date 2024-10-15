@@ -311,7 +311,16 @@ class AutoNews:
                 headers=self.headers,
                 data=data
             ) as response:
-                return {'status': True}
+                soup = BeautifulSoup(await response.text(), 'lxml')
+                status = soup.find(attrs={'id': 'Result_Status'})
+                if status:
+                    status_text = status.attrs.get('value')
+                    if status_text == 'Save':
+                        return {'status': True}
+                return {
+                    'status': False,
+                    'message': 'Новость не создана'
+                }
 
 
     async def logout(self):

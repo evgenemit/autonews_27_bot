@@ -12,7 +12,9 @@ from core.services.logs import add_logs
 class AutoNews:
 
     def __init__(self):
-        self.debug = True
+        env = Env()
+        env.read_env('.env')
+        self.debug = env.bool('DEBUG')
         self.session_id = None
         self.viewstate = None
         self.eventvalidation = None

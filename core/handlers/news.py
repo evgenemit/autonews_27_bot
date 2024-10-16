@@ -5,7 +5,7 @@ import aiofiles.os
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
 
-from core.states.news_states import NewsCreationStates, CircleStates
+from core.states.news_states import NewsStates, CircleStates
 from core.services.autonews import AutoNews
 from core.services.logs import add_logs
 from core.keyboards import reply
@@ -22,7 +22,7 @@ async def create_news(msg: types.Message, state: FSMContext):
         'Пост из канала: ',
         reply_markup=reply.cancle_keyboard('Перешли пост из канала')
     )
-    await state.set_state(NewsCreationStates.GET_NEWS_URL)
+    await state.set_state(NewsStates.GET_NEWS_URL)
 
 
 async def get_news_url(msg: types.Message, bot: Bot,  state: FSMContext):
@@ -33,7 +33,7 @@ async def get_news_url(msg: types.Message, bot: Bot,  state: FSMContext):
             'Заголовок: ',
             reply_markup=reply.cancle_keyboard('Заголовок новости')
         )
-        await state.set_state(NewsCreationStates.GET_NEWS_TITLE)
+        await state.set_state(NewsStates.GET_NEWS_TITLE)
     if msg.photo:
         file_name = f"data/{str(time.time()).replace('.', '')}.jpg"
         await bot.download(file=msg.photo[-1].file_id, destination=file_name)
@@ -43,7 +43,7 @@ async def get_news_title(msg: types.Message, state: FSMContext):
     """Сохраняет заголовок новости и запрашивает дату"""
     await state.update_data({'title': msg.text})
     await msg.answer('Дата:', reply_markup=reply.date_keyboard())
-    await state.set_state(NewsCreationStates.GET_NEWS_DATE)
+    await state.set_state(NewsStates.GET_NEWS_DATE)
 
 
 async def get_news_date(msg: types.Message, state: FSMContext):

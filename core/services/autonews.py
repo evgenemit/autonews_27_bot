@@ -40,19 +40,16 @@ class AutoNews:
             'Sec-Ch-Ua-Platform': '"Windows"'
         }
 
-
     async def __aenter__(self):
         return self
 
-
-    async def __aexit__(self, exception_type, exception_value, exception_traceback):
+    async def __aexit__(self, *args, **kwargs):
         await self.logout()
-
 
     def update_cookies(self):
         """Обновляет cookie запросов"""
-        self.headers['Cookie'] = f'ASP.NET_SessionId={self.session_id}; WJG=ListSecurity=Hight'
-
+        self.headers['Cookie'] = f'ASP.NET_SessionId={self.session_id};' + \
+            'WJG=ListSecurity=Hight'
 
     def update_asp_info(self, text: str):
         """Обновляет необходиме для запроса данные"""
@@ -61,7 +58,7 @@ class AutoNews:
             self.viewstate = sub[:sub.index('|')]
             sub = text[text.index('__EVENTVALIDATION') + 18:]
             self.eventvalidation = sub[:sub.index('|')]
-        except:
+        except Exception:
             pass
         soup = BeautifulSoup(text, 'lxml')
         res = soup.find(attrs={'id': '__VIEWSTATE'})
@@ -76,13 +73,14 @@ class AutoNews:
         guid_session = soup.find(attrs={'id': 'GuidSession'})
         if guid_session:
             self.guid_session = guid_session.attrs.get('value')
-        expandstate = soup.find(attrs={'id': 'ctl00_Main_Left_TreeClassifier_ExpandState'})
+        expandstate = soup.find(
+            attrs={'id': 'ctl00_Main_Left_TreeClassifier_ExpandState'}
+        )
         if expandstate:
             self.expandstate = 'e' + expandstate.attrs['value'][1:]
         guid_classifier = soup.find(attrs={'id': 'GUID_CLASSIFIER'})
         if guid_classifier:
             self.guid_classifier = guid_classifier.attrs.get('value')
-
 
     async def prepare_imges(self):
         """Сжимает картинки до 300 кб"""
@@ -99,7 +97,6 @@ class AutoNews:
                 im.save(new_name, quality=q, optimize=True, progressive=True)
                 q -= 1
 
-
     async def login(self):
         """Авторизация"""
         env = Env()
@@ -114,8 +111,13 @@ class AutoNews:
             ) as response:
                 set_cookies = response.headers.get('Set-Cookie')
                 if not set_cookies:
-                    return {'status': False, 'message': 'Ответ не содержит SessionId.'}
-                self.session_id = set_cookies[set_cookies.index('=') + 1:set_cookies.index(';')]
+                    return {
+                        'status': False,
+                        'message': 'Ответ не содержит SessionId.'
+                    }
+                self.session_id = set_cookies[
+                    set_cookies.index('=') + 1:set_cookies.index(';')
+                ]
                 self.update_cookies()
                 text = await response.text()
             soup = BeautifulSoup(text, 'lxml')
@@ -147,9 +149,11 @@ class AutoNews:
             soup = BeautifulSoup(text, 'lxml')
             status_work = soup.find(attrs={'id': 'StatusWork'})
             if status_work:
-                return {'status': False, 'message': status_work.attrs.get('value', None)}
+                return {
+                    'status': False,
+                    'message': status_work.attrs.get('value', None)
+                }
         return {'status': False, 'message': 'Ответ не содержит редирект.'}
-
 
     async def open_tree(self, path: list):
         """Открывает классификаторы по цепочке"""
@@ -191,8 +195,10 @@ class AutoNews:
             }
         if guid:
             return {'status': True, 'guid': guid}
-        return {'status': False, 'message': 'Не удалось открыть классификатор.'}
-
+        return {
+            'status': False,
+            'message': 'Не удалось открыть классификатор.'
+        }
 
     async def add_object(self, guid: str, obj_type: str, n: int = 1):
         """
@@ -233,7 +239,6 @@ class AutoNews:
             return {'status': True, 'objs_id': objs_id}
         return {'status': False, 'message': 'Не удалось создать новый объект.'}
 
-
     async def add_img(self, obj_id: str):
         """Загружает изображение в созданный графический объект"""
         img_path = 'data/' + (await aiofiles.os.listdir('data'))[0]
@@ -271,15 +276,14 @@ class AutoNews:
         await aiofiles.os.remove(img_path)
         return {'status': True}
 
-
     async def add_news_text(
-            self,
-            guid: str,
-            obj_id: str,
-            caption: str,
-            title: str,
-            date: str
-        ):
+        self,
+        guid: str,
+        obj_id: str,
+        caption: str,
+        title: str,
+        date: str
+    ):
         """Добавляет данные в объект новости"""
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -324,7 +328,6 @@ class AutoNews:
                     'message': 'Новость не создана'
                 }
 
-
     async def logout(self):
         """Закрывает сессию"""
         async with aiohttp.ClientSession() as session:
@@ -334,14 +337,13 @@ class AutoNews:
             ):
                 await add_logs(f'session_id={self.session_id} CLOSED')
 
-
     async def create_news(
-            self,
-            images_count: int,
-            caption: str,
-            title: str,
-            date: str
-        ):
+        self,
+        images_count: int,
+        caption: str,
+        title: str,
+        date: str
+    ):
         """Создает новость"""
         await add_logs('login')
         res = await self.login()
@@ -386,7 +388,6 @@ class AutoNews:
         if not res['status']:
             return res
         return {'status': True}
-
 
     async def circle(self, tree: list, images_count: int):
         """Загружает изображения по цепочке"""

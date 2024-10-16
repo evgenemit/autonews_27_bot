@@ -1,7 +1,7 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class NewsCreationStates(StatesGroup):
+class NewsStates(StatesGroup):
     """Создание новости"""
     GET_NEWS_URL = State()
     GET_NEWS_TITLE = State()

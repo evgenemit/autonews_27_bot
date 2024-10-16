@@ -2,8 +2,6 @@ from typing import Callable, Awaitable, Dict, Any
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 
-from core.services.database import Database
-
 
 class AdminMiddleware(BaseMiddleware):
     """Проверка является ли пользователь администратором"""

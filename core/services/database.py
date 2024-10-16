@@ -2,7 +2,7 @@ import asyncpg
 
 
 class Database:
-    
+
     def __init__(self, pool_connect: asyncpg.pool.Pool) -> None:
         self.connect = pool_connect
 

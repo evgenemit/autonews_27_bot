@@ -6,7 +6,7 @@ from environs import Env
 from database import Database
 
 
-async def create_tables() -> None:
+async def create_tables():
     env = Env()
     env.read_env('.env')
 

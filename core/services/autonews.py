@@ -11,7 +11,7 @@ from core.services.logs import add_logs
 
 class AutoNews:
 
-    def __init__(self):
+    def __init__(self) -> None:
         env = Env()
         env.read_env('.env')
         self.debug = env.bool('DEBUG')
@@ -46,12 +46,12 @@ class AutoNews:
     async def __aexit__(self, *args, **kwargs):
         await self.logout()
 
-    def update_cookies(self):
+    def update_cookies(self) -> None:
         """Обновляет cookie запросов"""
         self.headers['Cookie'] = f'ASP.NET_SessionId={self.session_id};' + \
             'WJG=ListSecurity=Hight'
 
-    def update_asp_info(self, text: str):
+    def update_asp_info(self, text: str) -> None:
         """Обновляет необходиме для запроса данные"""
         try:
             sub = text[text.index('__VIEWSTATE') + 12:]
@@ -366,9 +366,12 @@ class AutoNews:
         await add_logs('prepare images')
         await self.prepare_imges()
 
+        caption += '<p>'
         await add_logs('load images')
         for obj_id in images_objs_id:
             await self.add_img(obj_id)
+            caption += f'<img src="sm_full.aspx?guid={obj_id}" width="100%" />'
+        caption += '</p>'
 
         await add_logs('create news object')
         res = await self.add_object(guid, '534')

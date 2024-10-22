@@ -71,6 +71,9 @@ async def get_news_date(msg: types.Message, state: FSMContext):
         await msg.answer(
             f'{emoji.emojize(":green_circle:")} <b>Успешно создано</b>'
         )
+        await msg.answer(
+            f'http://sch27.minsk.edu.by/main.aspx?guid={res["news_id"]}'
+        )
     else:
         await msg.answer(
             f'{emoji.emojize(":red_circle:")} <b>{res["message"]}</b>'
@@ -131,6 +134,10 @@ async def circle_load_images(msg: types.Message, state: FSMContext):
     if res['status']:
         await msg.answer(
             f'{emoji.emojize(":green_circle:")} <b>Успешно загружено</b>'
+        )
+        await msg.answer(
+            text=f'```html\n{res.get("caption", "error")}```',
+            parse_mode='MarkdownV2'
         )
     else:
         await msg.answer(

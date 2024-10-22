@@ -390,7 +390,7 @@ class AutoNews:
         )
         if not res['status']:
             return res
-        return {'status': True}
+        return {'status': True, 'news_id': news_obj_id}
 
     async def circle(self, tree: list, images_count: int):
         """Загружает изображения по цепочке"""
@@ -416,6 +416,9 @@ class AutoNews:
         await self.prepare_imges()
 
         await add_logs('load images')
+        caption = '<p>'
         for obj_id in images_objs_id:
             await self.add_img(obj_id)
-        return {'status': True}
+            caption += f'<img src="sm_full.aspx?guid={obj_id}" width="100%" />'
+        caption += '</p>'
+        return {'status': True, 'caption': caption}
